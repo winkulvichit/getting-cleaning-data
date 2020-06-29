@@ -2,6 +2,21 @@ library(tidyr)
 library(dplyr)
 
 # Import dataset
+filename <- "Coursera.zip"
+
+# Checking if archive already exists.
+if (!file.exists(filename)){
+      fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+      download.file(fileURL, filename, method="curl")
+}  
+
+# Checking if folder exists
+if (!file.exists("UCI HAR Dataset")) { 
+      unzip(filename) 
+}
+
+setwd("UCI HAR Dataset")
+
 features <- read.table("features.txt")
 activity <- read.table("activity_labels.txt")
 
@@ -31,9 +46,7 @@ df$activity = factor(df$activity, levels = c(1:6), labels = c(activity[,2]))
 
 # Appropriately labels the data set with descriptive variable names.
 # From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-means_subject <- df %>% group_by(V1) %>% select(-c(1,563)) %>% summarize_all(funs(mean))
-names(means_subject)[2:562] <- features[,2]
 
-means_activity <- df %>% group_by(activity) %>% select(-c(1,563)) %>% summarize_all(funs(mean))
-names(means_activity)[2:562] <- features[,2]
-
+means <- df %>% group_by(V1, activity) %>% select(-c(1,563)) %>% summarize_all(funs(mean))
+names(means)[2:562] <- features[,2]
+write.table(means, file = "final_table.txt", row.names = FALSE) 
